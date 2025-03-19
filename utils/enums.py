@@ -11,6 +11,7 @@ class DatasetEnum(str, Enum):
 
 
 class ModelEnum(str, Enum):
+  DECISION_TREE = "decision_tree"
   LOGISTIC_REGRESSION = "logistic_regression"
   RANDOM_FOREST = "random_forest"
   NEURAL_NETWORK = "neural_network"
