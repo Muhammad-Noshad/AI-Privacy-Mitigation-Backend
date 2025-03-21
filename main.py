@@ -87,15 +87,15 @@ def train_model_endpoint(session_id: str, model_type: ModelEnum, model_params: d
     
     # Train the model
     try:
-        model, base_model_accuracy = train_model(session.dataset, model_type, model_params)
+        model, base_model_accuracy = train_model(session.dataset_id, session.dataset, model_type, model_params)
         session.model_type = model_type
         session.model = model
         session.training_result = base_model_accuracy
         
         return {
             "session_id": session_id,
-            "model_type": model_type,
             "message": "Model trained successfully",
+            "model_type": model_type,
             "base_model_accuracy": base_model_accuracy
         }
     except Exception as e:
