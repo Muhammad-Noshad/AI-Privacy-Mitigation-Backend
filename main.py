@@ -37,6 +37,7 @@ class SessionState:
         self.dataset = None
         self.model_type = None
         self.model = None
+        self.art_classifier = None
         self.training_result = None
         self.attack_type = None
         self.attack_result = None
@@ -74,7 +75,7 @@ def load_dataset_endpoint(session_id: str, dataset_id: DatasetEnum):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/train-model", response_model=dict)
-def train_model_endpoint(session_id: str, model_type: ModelEnum, model_params: dict = None):
+def train_model_endpoint(session_id: str, model_type: ModelEnum):
     """Train a model on the loaded dataset"""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
@@ -87,10 +88,11 @@ def train_model_endpoint(session_id: str, model_type: ModelEnum, model_params: d
     
     # Train the model
     try:
-        model, base_model_accuracy = train_model(session.dataset_id, session.dataset, model_type, model_params)
+        model, base_model_accuracy, art_classifier = train_model(session.dataset_id, session.dataset, model_type)
         session.model_type = model_type
         session.model = model
         session.training_result = base_model_accuracy
+        session.art_classifier = art_classifier
         
         return {
             "session_id": session_id,

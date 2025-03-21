@@ -6,7 +6,11 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 
-def train_model(dataset_id, dataset, model_type, model_params):
+from art.estimators.classification.scikitlearn import ScikitlearnDecisionTreeClassifier
+from art.estimators.classification.scikitlearn import ScikitlearnGaussianNB
+from art.estimators.classification.scikitlearn import ScikitlearnLogisticRegression
+
+def train_model(dataset_id, dataset, model_type):
   (x_train, y_train), (x_test, y_test) = dataset
 
   match dataset_id:
@@ -36,7 +40,21 @@ def train_model(dataset_id, dataset, model_type, model_params):
     case _:
       raise HTTPException(status_code=404, detail=f"Model type {model_type} not supported")
   
-  model.fit(x_train, y_train)
+  model.fit(x_train, y_train) 
+  
+  match model_type:
+    case ModelEnum.DECISION_TREE:
+      art_classifier = ScikitlearnDecisionTreeClassifier(model)
+    
+    case ModelEnum.LOGISTIC_REGRESSION:
+      art_classifier = ScikitlearnLogisticRegression(model)
+        
+    case ModelEnum.NAIVE_BAYES:
+      art_classifier = ScikitlearnGaussianNB(model)
+    
+    case _:
+      raise HTTPException(status_code=404, detail=f"Model type {model_type} not supported")
+  
   base_model_accuracy = model.score(x_test, y_test)
   
-  return model, base_model_accuracy
+  return model, base_model_accuracy, art_classifier
