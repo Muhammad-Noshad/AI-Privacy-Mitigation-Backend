@@ -16,7 +16,7 @@ def preprocess_adult_census_using_inference(x_train, y_train, x_test, y_test):
   x_train = x_train[:x_test.shape[0]]
   y_train = y_train[:y_test.shape[0]]
   
-  return (x_test, x_train), (y_test, y_train)
+  return (x_train, y_train), (x_test, y_test)
 
   
 def preprocess_adult_census_using_one_hot_encoder(x_train, y_train, x_test, y_test):
@@ -39,7 +39,7 @@ def preprocess_adult_census_using_one_hot_encoder(x_train, y_train, x_test, y_te
   if scipy.sparse.issparse(x_test):
     x_test = x_test.toarray().astype(int)
   
-  return (x_test, x_train), (y_test, y_train)
+  return (x_train, y_train), (x_test, y_test)
 
 
 def preprocess_german_credit_scoring(x_train, y_train, x_test, y_test):
@@ -62,4 +62,4 @@ def preprocess_german_credit_scoring(x_train, y_train, x_test, y_test):
   encoded_train = preprocessor.fit_transform(x_train)
   encoded_test = preprocessor.transform(x_test)  
   
-  return (encoded_test, encoded_train), (y_test, y_train)
+  return (encoded_train, y_train), (encoded_test, y_test)

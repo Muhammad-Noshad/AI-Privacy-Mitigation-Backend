@@ -11,6 +11,7 @@ from datetime import datetime
 from utils.enums import *
 from utils.dataset_loader import load_dataset
 from utils.model_trainer import train_model
+from utils.attack_runner import run_attack
 
 from initialize import initialize
 
@@ -38,6 +39,7 @@ class SessionState:
         self.model_type = None
         self.model = None
         self.art_classifier = None
+        self.preprocessed_dataset = None
         self.training_result = None
         self.attack_type = None
         self.attack_result = None
@@ -88,11 +90,12 @@ def train_model_endpoint(session_id: str, model_type: ModelEnum):
     
     # Train the model
     try:
-        model, base_model_accuracy, art_classifier = train_model(session.dataset_id, session.dataset, model_type)
+        model, base_model_accuracy, art_classifier, preprocessed_dataset = train_model(session.dataset_id, session.dataset, model_type)
         session.model_type = model_type
         session.model = model
         session.training_result = base_model_accuracy
         session.art_classifier = art_classifier
+        session.preprocessed_dataset = preprocessed_dataset
         
         return {
             "session_id": session_id,
@@ -103,32 +106,32 @@ def train_model_endpoint(session_id: str, model_type: ModelEnum):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @app.post("/api/run-attack", response_model=dict)
-# def run_attack_endpoint(session_id: str, attack_type: AttackEnum):
-#     """Run an attack on the trained model"""
-#     if session_id not in active_sessions:
-#         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+@app.post("/api/run-attack", response_model=dict)
+def run_attack_endpoint(session_id: str, attack_type: AttackEnum):
+    """Run an attack on the trained model"""
+    if session_id not in active_sessions:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
     
-#     session = active_sessions[session_id]
+    session = active_sessions[session_id]
     
-#     # Verify model is trained
-#     if session.model is None:
-#         raise HTTPException(status_code=400, detail="Model must be trained before running an attack")
+    # Verify model is trained
+    if session.model is None:
+        raise HTTPException(status_code=400, detail="Model must be trained before running an attack")
     
-#     # Run the attack
-#     try:
-#         attack_result = run_attack(session.model, session.dataset, attack_type)
-#         session.attack_type = attack_type
-#         session.attack_result = attack_result
+    # Run the attack
+    try:
+        attack_result = run_attack(session.preprocessed_dataset, session.art_classifier, attack_type)
+        session.attack_type = attack_type
+        session.attack_result = attack_result
         
-#         return {
-#             "session_id": session_id,
-#             "attack_type": attack_type,
-#             "message": "Attack executed successfully",
-#             "attack_result": attack_result
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+        return {
+            "session_id": session_id,
+            "message": "Attack executed successfully",
+            "attack_type": attack_type,
+            "attack_result": attack_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # @app.post("/api/apply-mitigation", response_model=dict)
 # def apply_mitigation_endpoint(session_id: str, mitigation_technique: MitigationEnum, mitigation_params: dict = None):

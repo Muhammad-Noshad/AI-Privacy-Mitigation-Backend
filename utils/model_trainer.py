@@ -15,10 +15,10 @@ def train_model(dataset_id, dataset, model_type):
 
   match dataset_id:
     case DatasetEnum.ADULT_CENSUS:
-      (x_test, x_train), (y_test, y_train) = preprocess_adult_census_using_inference(x_train=x_train, x_test=x_test, y_train=y_train, y_test=y_test)
+      (x_train, y_train), (x_test, y_test) = preprocess_adult_census_using_inference(x_train, y_train, x_test, y_test)
     
     case DatasetEnum.GERMAN_CREDIT_SCORING:
-      (x_test, x_train), (y_test, y_train) = preprocess_german_credit_scoring(x_train=x_train, x_test=x_test, y_train=y_train, y_test=y_test)
+      (x_train, y_train), (x_test, y_test) = preprocess_german_credit_scoring(x_train, y_train, x_test, y_test)
       
     case DatasetEnum.NURSERY:
       pass
@@ -57,4 +57,6 @@ def train_model(dataset_id, dataset, model_type):
   
   base_model_accuracy = model.score(x_test, y_test)
   
-  return model, base_model_accuracy, art_classifier
+  preprocessed_dataset = (x_train, y_train), (x_test, y_test)
+  
+  return model, base_model_accuracy, art_classifier, preprocessed_dataset

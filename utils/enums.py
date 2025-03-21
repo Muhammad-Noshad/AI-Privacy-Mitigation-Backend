@@ -19,9 +19,8 @@ class ModelEnum(str, Enum):
 
 
 class AttackEnum(str, Enum):
-  MEMBERSHIP_INFERENCE = "membership_inference"
-  MODEL_INVERSION = "model_inversion"
-  ATTRIBUTE_INFERENCE = "attribute_inference"
+  BLACK_BOX_ATTACK = "black_box_attack"
+  WHITE_BOX_ATTACK = "white_box_attack"
   # Add more attacks as needed
 
 
