@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from utils.model_preprocessor import preprocess_adult_census_using_inference, preprocess_adult_census_using_one_hot_encoder, preprocess_german_credit_scoring
+from utils.model_preprocessor import preprocess_adult_census_using_inference, preprocess_adult_census_using_one_hot_encoder, preprocess_german_credit_scoring, preprocess_nursery
 from utils.enums import ModelEnum, DatasetEnum
 
 from sklearn.tree import DecisionTreeClassifier
@@ -10,22 +10,23 @@ from art.estimators.classification.scikitlearn import ScikitlearnDecisionTreeCla
 from art.estimators.classification.scikitlearn import ScikitlearnGaussianNB
 from art.estimators.classification.scikitlearn import ScikitlearnLogisticRegression
 
-def train_model(dataset_id, dataset, model_type):
+def train_model(dataset_id, dataset, model_type, preprocessed=False):
   (x_train, y_train), (x_test, y_test) = dataset
 
-  match dataset_id:
-    case DatasetEnum.ADULT_CENSUS:
-      (x_train, y_train), (x_test, y_test) = preprocess_adult_census_using_inference(x_train, y_train, x_test, y_test)
-    
-    case DatasetEnum.GERMAN_CREDIT_SCORING:
-      (x_train, y_train), (x_test, y_test) = preprocess_german_credit_scoring(x_train, y_train, x_test, y_test)
+  if not preprocessed:
+    match dataset_id:
+      case DatasetEnum.ADULT_CENSUS:
+        (x_train, y_train), (x_test, y_test) = preprocess_adult_census_using_inference(x_train, y_train, x_test, y_test)
       
-    case DatasetEnum.NURSERY:
-      pass
-    
-    case _:
-      raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
-    
+      case DatasetEnum.GERMAN_CREDIT_SCORING:
+        (x_train, y_train), (x_test, y_test) = preprocess_german_credit_scoring(x_train, y_train, x_test, y_test)
+        
+      case DatasetEnum.NURSERY:
+        (x_train, y_train), (x_test, y_test) = preprocess_nursery(x_train, y_train, x_test, y_test)
+      
+      case _:
+        raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+      
   
   match model_type:
     case ModelEnum.DECISION_TREE:

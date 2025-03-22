@@ -11,7 +11,7 @@ def load_dataset(dataset_id):
       return get_german_credit_dataset_pd()
     
     case DatasetEnum.NURSERY:
-      return get_nursery_dataset_pd()
+      return get_nursery_dataset_pd(transform_social=True)
     
     case _:
       raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")

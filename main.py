@@ -12,6 +12,7 @@ from utils.enums import *
 from utils.dataset_loader import load_dataset
 from utils.model_trainer import train_model
 from utils.attack_runner import run_attack
+from utils.mitigation_applier import apply_mitigation
 
 from initialize import initialize
 
@@ -43,9 +44,12 @@ class SessionState:
         self.training_result = None
         self.attack_type = None
         self.attack_result = None
+        
         self.mitigation_technique = None
         self.mitigated_dataset = None
-        self.retrained_model = None
+        self.mitigated_art_classifier = None
+        self.mitigated_model = None
+        self.mitigated_training_result = None
         self.mitigated_attack_result = None
 
 @app.post("/api/start-session", response_model=dict)
@@ -133,55 +137,49 @@ def run_attack_endpoint(session_id: str, attack_type: AttackEnum):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @app.post("/api/apply-mitigation", response_model=dict)
-# def apply_mitigation_endpoint(session_id: str, mitigation_technique: MitigationEnum, mitigation_params: dict = None):
-#     """Apply mitigation technique, retrain model, and re-run attack"""
-#     if session_id not in active_sessions:
-#         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+@app.post("/api/apply-mitigation", response_model=dict)
+def apply_mitigation_endpoint(session_id: str, mitigation_technique: MitigationEnum, mitigation_params: dict = None):
+    """Apply mitigation technique, retrain model, and re-run attack"""
+    if session_id not in active_sessions:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
     
-#     session = active_sessions[session_id]
+    session = active_sessions[session_id]
     
-#     # Verify previous steps completed
-#     if session.dataset is None:
-#         raise HTTPException(status_code=400, detail="Dataset must be loaded first")
-#     if session.model is None:
-#         raise HTTPException(status_code=400, detail="Model must be trained first")
-#     if session.attack_result is None:
-#         raise HTTPException(status_code=400, detail="Attack must be run first")
+    # Verify previous steps completed
+    if session.dataset is None:
+        raise HTTPException(status_code=400, detail="Dataset must be loaded first")
+    if session.model is None:
+        raise HTTPException(status_code=400, detail="Model must be trained first")
+    if session.attack_result is None:
+        raise HTTPException(status_code=400, detail="Attack must be run first")
     
-#     try:
-#         # Apply mitigation
-#         mitigated_dataset = apply_mitigation(session.dataset, mitigation_technique, mitigation_params)
-#         session.mitigation_technique = mitigation_technique
-#         session.mitigated_dataset = mitigated_dataset
+    try:
+        # Apply mitigation
+        mitigated_dataset = apply_mitigation(session.dataset_id, session.dataset, session.preprocessed_dataset, session.art_classifier, mitigation_technique, mitigation_params)
+        session.mitigation_technique = mitigation_technique
+        session.mitigated_dataset = mitigated_dataset
         
-#         # Retrain model on mitigated dataset
-#         retrained_model_result = train_model(mitigated_dataset, session.model_type, None)
-#         session.retrained_model = retrained_model_result["model"]
+        # Retrain model on mitigated dataset
+        mitigated_model, mitigated_training_result, mitigated_art_classifier, _ = train_model(session.dataset_id, mitigated_dataset, session.model_type, True)
+        session.mitigated_model = mitigated_model
+        session.mitigated_training_result = mitigated_training_result
+        session.mitigated_art_classifier = mitigated_art_classifier
+
+        # Re-run the attack on the retrained model
+        mitigated_attack_result = run_attack(session.preprocessed_dataset, mitigated_art_classifier, session.attack_type)
+        session.mitigated_attack_result = mitigated_attack_result
         
-#         # Re-run the attack on the retrained model
-#         mitigated_attack_result = run_attack(session.retrained_model, mitigated_dataset, session.attack_type)
-#         session.mitigated_attack_result = mitigated_attack_result
-        
-#         # Calculate improvement
-#         improvement = {
-#             "original_success_rate": session.attack_result["success_rate"],
-#             "mitigated_success_rate": mitigated_attack_result["success_rate"],
-#             "absolute_improvement": session.attack_result["success_rate"] - mitigated_attack_result["success_rate"],
-#             "relative_improvement": (1 - (mitigated_attack_result["success_rate"] / session.attack_result["success_rate"])) * 100 if session.attack_result["success_rate"] > 0 else 0
-#         }
-        
-#         return {
-#             "session_id": session_id,
-#             "mitigation_technique": mitigation_technique,
-#             "message": "Mitigation applied, model retrained, and attack re-run successfully",
-#             "mitigation_metrics": mitigated_dataset["mitigation_metrics"],
-#             "retrained_model_metrics": retrained_model_result["training_metrics"],
-#             "mitigated_attack_result": mitigated_attack_result,
-#             "improvement": improvement
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+        return {
+            "session_id": session_id,
+            "message": "Mitigation applied, model retrained, and attack re-run successfully",
+            "mitigation_technique": mitigation_technique,
+            "original_training_result": session.training_result,
+            "mitigated_training_result": mitigated_training_result,
+            "original_attack_result": session.attack_result,
+            "mitigated_attack_result": mitigated_attack_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # @app.get("/api/session-status/{session_id}")
 # def get_session_status(session_id: str):
