@@ -177,34 +177,17 @@ def apply_mitigation_endpoint(session_id: str, mitigation_technique: MitigationE
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @app.get("/api/session-status/{session_id}")
-# def get_session_status(session_id: str):
-#     """Get the current status of a session"""
-#     if session_id not in active_sessions:
-#         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+@app.delete("/api/end-session", response_model=dict)
+def get_session_status(session_id: str):
+    """End a session"""
+    if session_id not in active_sessions:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
     
-#     session = active_sessions[session_id]
-    
-#     # Determine the current stage
-#     if session.mitigated_attack_result is not None:
-#         current_stage = "mitigation_complete"
-#     elif session.attack_result is not None:
-#         current_stage = "attack_complete"
-#     elif session.model is not None:
-#         current_stage = "model_trained"
-#     elif session.dataset is not None:
-#         current_stage = "dataset_loaded"
-#     else:
-#         current_stage = "session_started"
-    
-#     return {
-#         "session_id": session_id,
-#         "current_stage": current_stage,
-#         "dataset_id": session.dataset_id,
-#         "model_type": session.model_type,
-#         "attack_type": session.attack_type,
-#         "mitigation_technique": session.mitigation_technique
-#     }
+    del active_sessions[session_id]
+
+    return {
+        "details": f"Session {session_id} ended successfully",
+    }
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
