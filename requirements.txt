@@ -9,6 +9,7 @@ adversarial-robustness-toolbox>=1.11.0
 fastapi==0.114.0
 uvicorn==0.34.0
 pydantic==2.9.2
+diffprivlib==0.6.5
 
 # testing
 pytest==5.4.2
