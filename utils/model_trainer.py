@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from utils.model_preprocessor import preprocess_adult_census_using_inference, preprocess_adult_census_using_one_hot_encoder, preprocess_german_credit_scoring, preprocess_nursery
+from utils.model_preprocessor import preprocess_adult_census_using_inference, preprocess_german_credit_scoring, preprocess_nursery
 from utils.enums import ModelEnum, DatasetEnum
 
 from sklearn.tree import DecisionTreeClassifier

@@ -69,9 +69,10 @@ def load_dataset_endpoint(session_id: str, dataset_id: DatasetEnum):
     
     # Load the dataset
     try:
-        dataset = load_dataset(dataset_id)
+        dataset = load_dataset(dataset_id)                        
         session.dataset_id = dataset_id
         session.dataset = dataset
+        
         return {
             "session_id": session_id,
             "dataset_id": dataset_id,
@@ -138,7 +139,7 @@ def run_attack_endpoint(session_id: str, attack_type: AttackEnum):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/apply-mitigation", response_model=dict)
-def apply_mitigation_endpoint(session_id: str, mitigation_technique: MitigationEnum, mitigation_params: dict = None):
+def apply_mitigation_endpoint(session_id: str, mitigation_technique: MitigationEnum):
     """Apply mitigation technique, retrain model, and re-run attack"""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
@@ -155,7 +156,7 @@ def apply_mitigation_endpoint(session_id: str, mitigation_technique: MitigationE
     
     try:
         # Apply mitigation
-        mitigated_dataset = apply_mitigation(session.dataset_id, session.dataset, session.preprocessed_dataset, session.art_classifier, mitigation_technique, mitigation_params)
+        mitigated_dataset = apply_mitigation(session.dataset_id, session.preprocessed_dataset, session.art_classifier, mitigation_technique)
         session.mitigation_technique = mitigation_technique
         session.mitigated_dataset = mitigated_dataset
         
