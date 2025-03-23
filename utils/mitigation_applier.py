@@ -43,7 +43,7 @@ def anonymization(preprocessed_dataset, QI, art_classifier):
     
   return (x_train, y_train), (x_test, y_test)
 
-def differential_privacy(preprocessed_dataset, sensitive_columns, epsilon=1.0, dp_type="laplace"):
+def differential_privacy(preprocessed_dataset, sensitive_columns, epsilon=0.5, dp_type="laplace"):
   (x_train, y_train), (x_test, y_test) = preprocessed_dataset
   dp_x_train = np.copy(x_train)
 

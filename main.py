@@ -1,12 +1,7 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-import pandas as pd
-import numpy as np
+from fastapi import FastAPI, HTTPException
 import uvicorn
-import os
-import json
 import time
 import logging
-from datetime import datetime
 
 from utils.enums import *
 from utils.dataset_loader import load_dataset
